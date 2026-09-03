@@ -1,0 +1,108 @@
+# =========================
+# Python
+# =========================
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Python virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# Python packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# =========================
+# Environment Variables
+# =========================
+
+.env
+.env.local
+.env.development
+.env.production
+
+# =========================
+# FastAPI / Uvicorn
+# =========================
+
+*.log
+
+# =========================
+# Jupyter Notebook
+# =========================
+
+.ipynb_checkpoints/
+
+# =========================
+# VS Code
+# =========================
+
+.vscode/
+*.code-workspace
+
+# =========================
+# Windows
+# =========================
+
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# =========================
+# Node / React / Vite
+# =========================
+
+node_modules/
+frontend/node_modules/
+
+frontend/dist/
+frontend/.vite/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# Build / Cache
+# =========================
+
+.cache/
+.parcel-cache/
+
+# =========================
+# OS files
+# =========================
+
+.DS_Store
+
+# =========================
+# Temporary files
+# =========================
+
+*.tmp
+*.temp
+*.bak
+
+# =========================
+# Secrets / Keys
+# =========================
+
+*.pem
+*.key
+*.secret
+
+# =========================
+# Local databases
+# =========================
+
+*.db
+*.sqlite
+*.sqlite3
