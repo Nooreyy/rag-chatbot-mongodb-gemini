@@ -46,6 +46,82 @@ function App() {
     }
   }, [token]);
 
+  
+  useEffect(() => {
+    if (token) {
+      loadConversations();
+    } else {
+      setConversations([]);
+    }
+  }, [token]);
+
+
+  
+  async function loadConversations() {
+    if (!token) return;
+
+    try {
+      const response = await fetch(
+        `${API_URL}/chat/conversations`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Unable to load chat history");
+      }
+
+      const data = await response.json();
+
+      setConversations(data.conversations || []);
+    } catch (err) {
+      console.error("History loading error:", err);
+    }
+  }
+
+  
+  async function openConversation(id) {
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        `${API_URL}/chat/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.detail || "Unable to open conversation"
+        );
+      }
+
+      setConversationId(data.conversation_id);
+
+      setMessages(
+        (data.messages || []).map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        }))
+      );
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+
+
   async function handleAuth(e) {
     e.preventDefault();
 
@@ -83,14 +159,41 @@ function App() {
       );
 
       const data = await response.json();
-
+     
+      
       if (!response.ok) {
+        const detail = data.detail;
+
+        const errorType =
+          typeof detail === "object" && detail !== null
+            ? detail.error_type
+            : data.error_type;
+
+        const errorMessage =
+          typeof detail === "object" && detail !== null
+            ? detail.message
+            : typeof detail === "string"
+              ? detail
+              : data.error || data.message;
+
+        if (errorType === "user_not_found") {
+          throw new Error(
+            "User not found. Please register first."
+          );
+        }
+
+        if (errorType === "invalid_password") {
+          throw new Error(
+            "Invalid email or password."
+          );
+        }
+
         throw new Error(
-          data.detail ||
-          data.message ||
-          "Something went wrong"
+          errorMessage || "Something went wrong"
         );
       }
+
+
 
       if (authMode === "register") {
         setAuthMode("login");
@@ -174,10 +277,10 @@ function App() {
       }
 
       if (!conversationId) {
-        setConversationId(
-          data.conversation_id
-        );
+        setConversationId(data.conversation_id);
       }
+
+      await loadConversations();
 
       setMessages((prev) => [
         ...prev,
@@ -222,7 +325,7 @@ function App() {
   }
 
   return (
-    <div className="h-screen bg-[#050505] text-white flex overflow-hidden">
+    <div className="h-screen bg-[#050604] text-white flex overflow-hidden">
 
       {/* SIDEBAR */}
 
@@ -232,7 +335,7 @@ function App() {
           transition-all duration-300
           overflow-hidden
           border-r border-white/[0.07]
-          bg-[#080908]
+          bg-[#080b07]
           flex flex-col
         `}
       >
@@ -241,21 +344,21 @@ function App() {
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 rounded-xl
               bg-gradient-to-br
-              from-purple-500
-              to-emerald-600
+              from-lime-400
+              to-green-500
               flex items-center justify-center
-              shadow-lg shadow-purple-500/20">
+              shadow-lg shadow-lime-400/20">
 
               <Sparkles size={19} />
             </div>
 
             <div>
               <h1 className="font-bold text-lg">
-                Nexus AI
+                Margot
               </h1>
 
               <p className="text-[11px] text-zinc-500">
-                RAG Intelligence
+                Your AI companion
               </p>
             </div>
           </div>
@@ -291,29 +394,46 @@ function App() {
             Conversations
           </p>
 
-          {conversationId && (
-            <button
-              className="
-                w-full
-                text-left
-                px-3 py-3
-                rounded-xl
-                bg-purple-500/[0.08]
-                border border-purple-500/10
-                flex gap-3
-                items-center
-              "
-            >
-              <MessageSquare
-                size={16}
-                className="text-purple-400"
-              />
+          
+        {conversations.length === 0 ? (
+          <p className="px-3 py-4 text-xs text-zinc-600">
+            No chat history yet
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {conversations.map((conversation) => (
+              <button
+                key={conversation.id}
+                onClick={() => openConversation(conversation.id)}
+                className={`
+                  w-full
+                  text-left
+                  px-3 py-3
+                  rounded-xl
+                  border
+                  flex gap-3
+                  items-center
+                  transition
+                  ${
+                    conversation.id === conversationId
+                      ? "bg-emerald-500/10 border-emerald-500/20"
+                      : "bg-transparent border-transparent hover:bg-white/[0.05]"
+                  }
+                `}
+              >
+                <MessageSquare
+                  size={16}
+                  className="text-emerald-400 shrink-0"
+                />
 
-              <span className="text-sm text-zinc-300 truncate">
-                Current conversation
-              </span>
-            </button>
-          )}
+                <span className="text-sm text-zinc-300 truncate">
+                  {conversation.title || "New conversation"}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+
 
         </div>
 
@@ -329,8 +449,8 @@ function App() {
             <div className="
               w-9 h-9 rounded-full
               bg-gradient-to-br
-              from-purple-500/30
-              to-emerald-500/20
+              from-lime-400/30
+              to-green-400/20
               flex items-center justify-center
             ">
               <User size={17} />
@@ -338,7 +458,7 @@ function App() {
 
             <div className="flex-1 min-w-0">
               <p className="text-sm truncate">
-                AI User
+                Your account
               </p>
 
               <p className="text-[11px] text-zinc-600">
@@ -374,7 +494,7 @@ function App() {
           border-b border-white/[0.07]
           flex items-center
           px-5
-          bg-[#070807]/80
+          bg-[#080b07]/90
           backdrop-blur-xl
         ">
 
@@ -399,7 +519,7 @@ function App() {
           <div className="ml-3">
 
             <h2 className="text-sm font-semibold">
-              AI Knowledge Assistant
+              Margot • AI Assistant
             </h2>
 
             <div className="
@@ -409,11 +529,11 @@ function App() {
               <span className="
                 w-1.5 h-1.5
                 rounded-full
-                bg-emerald-400
-                shadow shadow-emerald-400
+                bg-lime-300
+                shadow shadow-lime-300
               "/>
 
-              RAG system online
+              AI assistant ready
             </div>
 
           </div>
@@ -461,8 +581,8 @@ function App() {
                     w-9 h-9
                     rounded-xl
                     bg-gradient-to-br
-                    from-purple-500
-                    to-emerald-600
+                    from-lime-400
+                    to-green-500
                     flex items-center justify-center
                     shrink-0
                   ">
@@ -480,14 +600,14 @@ function App() {
                       <span className="
                         w-1.5 h-1.5
                         rounded-full
-                        bg-purple-400
+                        bg-lime-300
                         animate-bounce
                       "/>
 
                       <span className="
                         w-1.5 h-1.5
                         rounded-full
-                        bg-purple-400
+                        bg-lime-300
                         animate-bounce
                         [animation-delay:150ms]
                       "/>
@@ -495,7 +615,7 @@ function App() {
                       <span className="
                         w-1.5 h-1.5
                         rounded-full
-                        bg-emerald-400
+                        bg-lime-300
                         animate-bounce
                         [animation-delay:300ms]
                       "/>
@@ -517,7 +637,7 @@ function App() {
         <div className="
           p-5
           border-t border-white/[0.07]
-          bg-[#070807]
+          bg-[#080b07]
         ">
 
           {error && (
@@ -554,7 +674,7 @@ function App() {
                   sendMessage(e);
                 }
               }}
-              placeholder="Ask anything from your knowledge base..."
+              placeholder="Message Margot... Ask anything"
               rows="1"
               className="
                 w-full
@@ -562,9 +682,9 @@ function App() {
                 rounded-2xl
                 bg-white/[0.045]
                 border border-white/[0.09]
-                focus:border-purple-500/40
+                focus:border-lime-400/40
                 focus:ring-2
-                focus:ring-purple-500/10
+                focus:ring-lime-400/10
                 outline-none
                 px-5 py-4
                 pr-14
@@ -585,15 +705,15 @@ function App() {
                 w-10 h-10
                 rounded-xl
                 bg-gradient-to-br
-                from-purple-600
-                to-emerald-600
+                from-lime-500
+                to-green-500
                 flex items-center justify-center
                 disabled:opacity-30
                 disabled:cursor-not-allowed
                 hover:scale-105
                 transition
                 shadow-lg
-                shadow-purple-900/20
+                shadow-lime-900/20
               "
             >
               <Send size={17} />
@@ -607,7 +727,7 @@ function App() {
             text-zinc-700
             mt-3
           ">
-            Powered by Gemini • MongoDB Vector Search
+            Margot can make mistakes. Check important information.
           </p>
 
         </div>
@@ -636,8 +756,8 @@ function Message({ message }) {
           w-9 h-9
           rounded-xl
           bg-gradient-to-br
-          from-purple-500
-          to-emerald-600
+          from-lime-400
+          to-green-500
           flex items-center justify-center
           shrink-0
         ">
@@ -656,8 +776,8 @@ function Message({ message }) {
           isUser
             ? `
               bg-gradient-to-br
-              from-purple-600/90
-              to-purple-700/80
+              from-lime-500/90
+              to-lime-500/80
               rounded-tr-md
             `
             : `
@@ -692,10 +812,10 @@ function Message({ message }) {
 function WelcomeScreen({ setMessage }) {
 
   const suggestions = [
-    "What is Artificial Intelligence?",
-    "Explain Retrieval-Augmented Generation",
-    "What are embeddings?",
-    "How does vector search work?"
+    "Explain a difficult concept simply",
+    "Help me brainstorm an idea",
+    "Summarize a topic for me",
+    "Answer from my knowledge base"
   ];
 
   return (
@@ -717,12 +837,12 @@ function WelcomeScreen({ setMessage }) {
           w-16 h-16
           rounded-2xl
           bg-gradient-to-br
-          from-purple-500
-          via-purple-600
-          to-emerald-600
+          from-lime-400
+          via-lime-500
+          to-green-500
           flex items-center justify-center
           shadow-2xl
-          shadow-purple-900/30
+          shadow-lime-900/30
         ">
           <Sparkles size={28} />
         </div>
@@ -733,17 +853,17 @@ function WelcomeScreen({ setMessage }) {
           font-bold
           tracking-tight
         ">
-          Your knowledge,
+          Think clearly,
           <span className="
             block
             bg-gradient-to-r
-            from-purple-400
-            via-fuchsia-400
-            to-emerald-400
+            from-lime-300
+            via-green-300
+            to-lime-300
             bg-clip-text
             text-transparent
           ">
-            intelligently retrieved.
+            create with Margot.
           </span>
         </h1>
 
@@ -755,9 +875,7 @@ function WelcomeScreen({ setMessage }) {
           leading-7
           text-sm
         ">
-          Ask questions and get grounded answers
-          from your private knowledge base using
-          Retrieval-Augmented Generation.
+          Your AI companion for ideas, learning, problem-solving, and questions about your knowledge base.
         </p>
 
         <div className="
@@ -780,8 +898,8 @@ function WelcomeScreen({ setMessage }) {
                   rounded-2xl
                   bg-white/[0.03]
                   border border-white/[0.07]
-                  hover:border-purple-500/30
-                  hover:bg-purple-500/[0.04]
+                  hover:border-lime-400/30
+                  hover:bg-lime-400/[0.04]
                   text-sm
                   text-zinc-400
                   hover:text-zinc-200
@@ -822,7 +940,7 @@ function AuthScreen({
   return (
     <div className="
       min-h-screen
-      bg-[#050505]
+      bg-[#050604]
       text-white
       flex items-center
       justify-center
@@ -838,7 +956,7 @@ function AuthScreen({
         w-[500px]
         h-[500px]
         rounded-full
-        bg-purple-700/10
+        bg-lime-500/10
         blur-[120px]
         -top-40
         -left-40
@@ -849,7 +967,7 @@ function AuthScreen({
         w-[500px]
         h-[500px]
         rounded-full
-        bg-emerald-700/10
+        bg-green-700/10
         blur-[120px]
         -bottom-40
         -right-40
@@ -872,11 +990,11 @@ function AuthScreen({
             w-14 h-14
             rounded-2xl
             bg-gradient-to-br
-            from-purple-500
-            to-emerald-600
+            from-lime-400
+            to-green-500
             flex items-center justify-center
             shadow-xl
-            shadow-purple-900/30
+            shadow-lime-900/30
             mb-5
           ">
             <Sparkles size={25} />
@@ -886,7 +1004,7 @@ function AuthScreen({
             text-3xl
             font-bold
           ">
-            Welcome to Nexus AI
+            Welcome to Margot
           </h1>
 
           <p className="
@@ -894,7 +1012,7 @@ function AuthScreen({
             text-sm
             text-zinc-600
           ">
-            Your intelligent knowledge assistant
+            Your AI companion for thinking and creating
           </p>
 
         </div>
@@ -980,7 +1098,7 @@ function AuthScreen({
                   rounded-xl
                   bg-black/30
                   border border-white/[0.08]
-                  focus:border-purple-500/40
+                  focus:border-lime-400/40
                   outline-none
                   px-4 py-3
                   text-sm
@@ -1002,7 +1120,7 @@ function AuthScreen({
                 rounded-xl
                 bg-black/30
                 border border-white/[0.08]
-                focus:border-purple-500/40
+                focus:border-lime-400/40
                 outline-none
                 px-4 py-3
                 text-sm
@@ -1023,7 +1141,7 @@ function AuthScreen({
                 rounded-xl
                 bg-black/30
                 border border-white/[0.08]
-                focus:border-purple-500/40
+                focus:border-lime-400/40
                 outline-none
                 px-4 py-3
                 text-sm
@@ -1032,11 +1150,7 @@ function AuthScreen({
             />
 
             {error && (
-              <p className="
-                text-xs
-                text-red-400
-                leading-5
-              ">
+              <p className="mt-3 text-sm text-red-500 text-center">
                 {error}
               </p>
             )}
@@ -1048,16 +1162,16 @@ function AuthScreen({
                 py-3.5
                 rounded-xl
                 bg-gradient-to-r
-                from-purple-600
-                to-emerald-600
-                hover:from-purple-500
-                hover:to-emerald-500
+                from-lime-500
+                to-green-500
+                hover:from-lime-400
+                hover:to-green-400
                 disabled:opacity-50
                 font-medium
                 text-sm
                 transition
                 shadow-lg
-                shadow-purple-900/20
+                shadow-lime-900/20
               "
             >
               {loading

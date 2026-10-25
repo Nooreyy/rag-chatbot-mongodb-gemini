@@ -2,10 +2,7 @@ from datetime import datetime, timezone
 
 from bson import ObjectId
 
-from backend.database import (
-    conversations_collection,
-    messages_collection
-)
+from backend.database import (conversations_collection, messages_collection)
 
 
 def create_conversation(
@@ -57,3 +54,27 @@ def get_conversation_messages(
     )
 
     return list(messages)
+
+
+def get_user_conversations(user_id: str):
+    conversations = conversations_collection.find(
+        {"user_id": user_id},
+        {
+            "title": 1,
+            "created_at": 1
+        }
+    ).sort(
+        "created_at",
+        -1
+    )
+
+    result = []
+
+    for conversation in conversations:
+        result.append({
+            "id": str(conversation["_id"]),
+            "title": conversation.get("title", "New conversation"),
+            "created_at": conversation.get("created_at")
+        })
+
+    return result

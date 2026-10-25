@@ -1,3 +1,5 @@
+'''Ye code JWT token ko check karke current logged-in user ko identify/protect'''
+
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 

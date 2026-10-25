@@ -1,6 +1,9 @@
+# Password ko hash or verify krna hai
+# JWT access token create or verify krna hai
+
 import os
 
-from passlib.context import CryptContext
+from passlib.context import CryptContext    # Use for password hashing
 from jose import jwt
 from dotenv import load_dotenv
 

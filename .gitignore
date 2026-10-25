@@ -7,7 +7,7 @@ __pycache__/
 *$py.class
 *.so
 
-# Python virtual environment
+# Python virtual environments
 venv/
 .venv/
 env/
@@ -18,21 +18,37 @@ build/
 dist/
 *.egg-info/
 .eggs/
+wheels/
+pip-wheel-metadata/
 
 # =========================
 # Environment Variables
 # =========================
 
 .env
-.env.local
-.env.development
-.env.production
+.env.*
+!.env.example
+
+# Keep example templates, never real secrets
+!.env.example
 
 # =========================
-# FastAPI / Uvicorn
+# Secrets / Credentials
+# =========================
+
+*.pem
+*.key
+*.secret
+secrets/
+credentials.json
+service-account*.json
+
+# =========================
+# FastAPI / Logs
 # =========================
 
 *.log
+uvicorn.log
 
 # =========================
 # Jupyter Notebook
@@ -41,29 +57,33 @@ dist/
 .ipynb_checkpoints/
 
 # =========================
-# VS Code
+# VS Code / IDE
 # =========================
 
 .vscode/
 *.code-workspace
+.idea/
 
 # =========================
-# Windows
+# Windows / macOS
 # =========================
 
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+.DS_Store
 
 # =========================
 # Node / React / Vite
 # =========================
 
 node_modules/
-frontend/node_modules/
+**/node_modules/
 
-frontend/dist/
-frontend/.vite/
+dist/
+**/dist/
+.vite/
+**/.vite/
 
 npm-debug.log*
 yarn-debug.log*
@@ -76,33 +96,30 @@ pnpm-debug.log*
 
 .cache/
 .parcel-cache/
+coverage/
+*.tsbuildinfo
 
 # =========================
-# OS files
-# =========================
-
-.DS_Store
-
-# =========================
-# Temporary files
-# =========================
-
-*.tmp
-*.temp
-*.bak
-
-# =========================
-# Secrets / Keys
-# =========================
-
-*.pem
-*.key
-*.secret
-
-# =========================
-# Local databases
+# Local Databases
 # =========================
 
 *.db
 *.sqlite
 *.sqlite3
+
+# =========================
+# Temporary / Backup Files
+# =========================
+
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# =========================
+# OS / Tool Artifacts
+# =========================
+
+.DS_Store?

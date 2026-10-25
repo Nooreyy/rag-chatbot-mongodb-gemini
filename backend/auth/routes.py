@@ -1,7 +1,7 @@
-from fastapi import APIRouter
 from backend.database import users_collection
 from backend.auth.schemas import RegisterRequest, LoginRequest
 from backend.auth.security import (hash_password, verify_password, create_access_token)
+from fastapi import APIRouter, HTTPException
 
 router = APIRouter(
     prefix="/auth",
@@ -33,23 +33,47 @@ def register(user: RegisterRequest):
     return {"message": "User registered successfully"}
 
 # Login
+
 @router.post("/login")
 def login(user: LoginRequest):
-    # Find the user by email
-    existing_user = users_collection.find_one({"email": user.email})
+    # Find user by email
+    existing_user = users_collection.find_one(
+        {"email": user.email}
+    )
+
+    # Check if user exists
     if not existing_user:
-        return {"error": "Invalid email or password"}
+        raise HTTPException(
+        status_code=404,
+        detail={
+            "error_type": "user_not_found",
+            "message": "User not found. Please register first."
+        }
+    )
 
-    # Verify the password
-    password_correct = verify_password(user.password, existing_user["password"])
+    # Verify password
+    password_correct = verify_password(
+        user.password,
+        existing_user["password"]
+    )
+
     if not password_correct:
-        return {"error": "Invalid email or password"}
+        raise HTTPException(
+        status_code=401,
+        detail={
+            "error_type": "invalid_password",
+            "message": "Invalid email or password."
+        }
+    )
 
-    # Create an access token
-    access_token = create_access_token({"user_id": str(existing_user["_id"]), "email": existing_user["email"]})
+    # Create access token
+    access_token = create_access_token({
+        "user_id": str(existing_user["_id"]),
+        "email": existing_user["email"]
+    })
 
     return {
         "message": "Login successful",
-        "access_token": access_token, 
+        "access_token": access_token,
         "token_type": "bearer"
-        }
+    }

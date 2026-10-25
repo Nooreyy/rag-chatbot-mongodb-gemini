@@ -8,11 +8,31 @@ from backend.rag.generator import generate_rag_answer
 
 from backend.llm.history import (create_conversation, save_message, get_conversation_messages)
 
+from backend.llm.history import (
+    create_conversation,
+    save_message,
+    get_conversation_messages,
+    get_user_conversations
+)
+
 
 router = APIRouter(
     prefix="/chat",
     tags=["Chat"]
 )
+
+
+@router.get("/conversations")
+def list_conversations(
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["user_id"]
+
+    conversations = get_user_conversations(user_id)
+
+    return {
+        "conversations": conversations
+    }
 
 
 @router.post("/")

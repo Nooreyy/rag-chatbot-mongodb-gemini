@@ -1,6 +1,4 @@
-from langchain_text_splitters import (
-    RecursiveCharacterTextSplitter
-)
+from langchain_text_splitters import (RecursiveCharacterTextSplitter)
 
 
 def split_text(text: str):

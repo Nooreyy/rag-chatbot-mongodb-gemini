@@ -1,3 +1,4 @@
+
 from backend.llm.service import generate_response
 
 
@@ -5,25 +6,45 @@ def generate_rag_answer(
     question: str,
     retrieved_chunks: list
 ):
-    # Combine retrieved chunks into one context
+    # Prepare context from retrieved document chunks
     context = "\n\n".join(
         chunk["text"]
         for chunk in retrieved_chunks
+        if chunk.get("text")
     )
 
     prompt = f"""
-You are a helpful AI assistant.
+You are Margot, a helpful, intelligent, and general-purpose AI assistant.
 
-Answer the user's question using ONLY the
-information provided in the context below.
+Your job is to answer the user's question helpfully and accurately.
 
-If the answer is not present in the context,
-say that you do not have enough information.
+You can use two sources of information:
+1. Your general knowledge and reasoning.
+2. The document context retrieved from the user's knowledge base.
 
-Context:
-{context}
+IMPORTANT RULES:
 
-User Question:
+- Answer general questions using your own knowledge.
+- You can answer questions about programming, mathematics,
+  science, technology, writing, education, and everyday topics.
+- Do not say that you cannot answer a question just because
+  the answer is missing from the document context.
+- The retrieved context may be irrelevant to the user's question.
+  Use it only when it is genuinely relevant.
+- If the question is specifically about information in the
+  knowledge base, use relevant context to answer accurately.
+- If the user asks a question that combines document information
+  with general knowledge, use both when appropriate.
+- Never force irrelevant document information into your answer.
+- If you are uncertain about a factual answer, be transparent
+  about that uncertainty.
+- Answer in the language used by the user whenever possible.
+- Keep answers clear, useful, and appropriately detailed.
+
+Retrieved document context:
+{context if context.strip() else "No relevant document context was retrieved."}
+
+User's question:
 {question}
 
 Answer:
@@ -31,24 +52,4 @@ Answer:
 
     answer = generate_response(prompt)
 
-    return answer
-
-from backend.rag.retriever import search_similar_chunks
-
-
-# if __name__ == "__main__":
-
-#     question = "What is Retrieval-Augmented Generation?"
-
-#     chunks = search_similar_chunks(
-#         question,
-#         limit=3
-#     )
-
-#     answer = generate_rag_answer(
-#         question,
-#         chunks
-#     )
-
-#     print("\nFINAL ANSWER:")
-#     print(answer)
+    return answer.strip()

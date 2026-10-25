@@ -22,9 +22,7 @@ def ingest_document(file_path: str):
 
     for chunk in chunks:
 
-        embedding = generate_embedding(
-            chunk
-        )
+        embedding = generate_embedding(chunk)
 
         documents.append({
             "text": chunk,
@@ -45,6 +43,4 @@ def ingest_document(file_path: str):
 
 if __name__ == "__main__":
 
-    ingest_document(
-        "D:\\1- Noor\\2-SMIT\\7-AI and Data Science\\rag-chatbot\\data\\knowledge.txt"
-    )
+    ingest_document("D:\\1- Noor\\2-SMIT\\7-AI and Data Science\\rag-chatbot\\data\\knowledge.txt")

@@ -14,18 +14,9 @@ client = genai.Client(
     api_key=GEMINI_API_KEY
 )
 
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL","gemini-embedding-001")
 
-EMBEDDING_MODEL = os.getenv(
-    "EMBEDDING_MODEL",
-    "gemini-embedding-001"
-)
-
-EMBEDDING_DIMENSIONS = int(
-    os.getenv(
-        "EMBEDDING_DIMENSIONS",
-        "768"
-    )
-)
+EMBEDDING_DIMENSIONS = int(os.getenv("EMBEDDING_DIMENSIONS","768"))
 
 
 def generate_embedding(text: str):

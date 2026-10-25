@@ -1,6 +1,6 @@
-import os
-from pymongo import MongoClient
-from dotenv import load_dotenv
+import os   # Operating System module import kiya taake environment variables ko access kiya ja sake
+from pymongo import MongoClient # MongoDB client import kiya taake MongoDB ke sath interact kiya ja sake
+from dotenv import load_dotenv  # dotenv module import kiya taake .env file se environment variables load kiye ja saken
 
 load_dotenv()
 
@@ -26,32 +26,3 @@ def test_connection():
         print("Connected to MongoDB successfully!")
     except Exception as e:
         print(f"Error connecting to MongoDB: {e}")
-
-
-
-# import os
-# from pymongo import MongoClient
-# from dotenv import load_dotenv
-
-# load_dotenv()
-
-# MONGODB_URI = os.getenv("MONGODB_URI")
-
-# client = MongoClient(
-#     MONGODB_URI,
-#     serverSelectionTimeoutMS=10000
-# )
-
-# db = client["rag_chatbot"]
-
-# users_collection = db["users"]
-
-
-# def test_connection():
-#     try:
-#         client.admin.command("ping")
-#         print("Connected to MongoDB successfully!")
-
-#     except Exception as e:
-#         print("Error connecting to MongoDB:")
-#         print(e)
